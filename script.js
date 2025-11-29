@@ -1,4 +1,4 @@
-// Tetris Game Logic with Nord Theme Colors
+// Tetris Game Logic with Nord Theme Colors and Random Mode
 
 // Game Constants
 const COLS = 10;
@@ -108,6 +108,12 @@ let dropCounter = 0;
 let dropInterval = 1000;
 let lastTime = 0;
 let difficulty = 5;
+let gameMode = 'classic'; // 'classic' or 'random'
+
+// Random Mode specific variables
+let mutationCounter = 0;
+let mutationInterval = 2000; // 2 seconds
+let mutationWarningElement = null;
 
 // Background Music
 let backgroundMusic = null;
@@ -134,6 +140,13 @@ function init() {
     document.getElementById('restartBtn').addEventListener('click', restartGame);
     document.getElementById('difficultySlider').addEventListener('input', updateDifficulty);
     document.addEventListener('keydown', handleKeyPress);
+
+    // Mode selector
+    document.querySelectorAll('input[name="gameMode"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            gameMode = e.target.value;
+        });
+    });
 
     // Initial draw
     drawBoard();
@@ -171,6 +184,7 @@ function startGame() {
     gameRunning = true;
     gamePaused = false;
     dropCounter = 0;
+    mutationCounter = 0;
     lastTime = 0;
 
     updateScore();
@@ -180,6 +194,12 @@ function startGame() {
 
     // Hide game over screen
     document.getElementById('gameOver').classList.add('hidden');
+
+    // Remove any existing mutation warning
+    if (mutationWarningElement) {
+        mutationWarningElement.remove();
+        mutationWarningElement = null;
+    }
 
     // Create first pieces
     nextPiece = createPiece();
@@ -201,7 +221,6 @@ function restartGame() {
 }
 
 // Create random piece using 7-bag randomizer
-// This ensures all 7 pieces appear before any repeat, preventing long streaks
 function createPiece() {
     // If bag is empty, refill it with all 7 piece types
     if (pieceBag.length === 0) {
@@ -227,6 +246,87 @@ function createPiece() {
     };
 }
 
+// Mutate current piece to random shape (Random Mode)
+function mutateCurrentPiece() {
+    if (gameMode !== 'random' || !currentPiece) return;
+
+    // Get all piece types
+    const types = Object.keys(SHAPES);
+    
+    // Get random type (can be same as current)
+    const newType = types[Math.floor(Math.random() * types.length)];
+    const newShapes = SHAPES[newType];
+    const newRotation = Math.floor(Math.random() * newShapes.length);
+
+    // Store old position
+    const oldX = currentPiece.x;
+    const oldY = currentPiece.y;
+
+    // Update piece
+    currentPiece.type = newType;
+    currentPiece.shape = newShapes[newRotation];
+    currentPiece.rotation = newRotation;
+    currentPiece.color = COLORS[newType];
+
+    // Check if new shape causes collision
+    if (checkCollision()) {
+        // Try to adjust position slightly
+        let adjusted = false;
+        
+        // Try moving left/right
+        for (let offset = -2; offset <= 2; offset++) {
+            currentPiece.x = oldX + offset;
+            if (!checkCollision()) {
+                adjusted = true;
+                break;
+            }
+        }
+
+        // If still colliding, try moving up
+        if (!adjusted) {
+            currentPiece.x = oldX;
+            for (let offset = -2; offset <= 0; offset++) {
+                currentPiece.y = oldY + offset;
+                if (!checkCollision()) {
+                    adjusted = true;
+                    break;
+                }
+            }
+        }
+
+        // If still can't adjust, revert (rare case)
+        if (!adjusted) {
+            currentPiece.y = oldY;
+        }
+    }
+
+    // Show mutation warning
+    showMutationWarning();
+}
+
+// Show mutation warning popup
+function showMutationWarning() {
+    // Remove existing warning if any
+    if (mutationWarningElement) {
+        mutationWarningElement.remove();
+    }
+
+    // Create warning element
+    mutationWarningElement = document.createElement('div');
+    mutationWarningElement.className = 'mutation-warning';
+    mutationWarningElement.textContent = '⚡ SHAPE CHANGED!';
+    
+    document.querySelector('.game-area').appendChild(mutationWarningElement);
+
+    // Remove after 1 second
+    setTimeout(() => {
+        if (mutationWarningElement) {
+            mutationWarningElement.remove();
+            mutationWarningElement = null;
+        }
+    }, 1000);
+}
+
 // Game loop
 function update(time = 0) {
     if (!gameRunning || gamePaused) return;
@@ -235,13 +335,23 @@ function update(time = 0) {
     lastTime = time;
     dropCounter += deltaTime;
 
+    // Random Mode: Mutation timer
+    if (gameMode === 'random') {
+        mutationCounter += deltaTime;
+        
+        if (mutationCounter >= mutationInterval) {
+            mutateCurrentPiece();
+            mutationCounter = 0;
+        }
+    }
+
     if (dropCounter > dropInterval) {
         moveDown();
         dropCounter = 0;
     }
 
     drawBoard();
-    drawGhostPiece(currentPiece); // Draw ghost piece first (underneath)
+    drawGhostPiece(currentPiece);
     drawPiece(currentPiece);
 
     gameLoop = requestAnimationFrame(update);
@@ -411,7 +521,7 @@ function clearLines() {
         // Scoring: 100 for 1 line, 300 for 2, 500 for 3, 800 for 4
         const points = [0, 100, 300, 500, 800];
         // Difficulty multiplier: higher difficulty = more points
-        const difficultyMultiplier = 1 + (difficulty - 1) * 0.2; // 1x at difficulty 1, 2.8x at difficulty 10
+        const difficultyMultiplier = 1 + (difficulty - 1) * 0.2;
         score += Math.floor(points[linesCleared] * level * difficultyMultiplier);
 
         // Level up every 10 lines
@@ -428,6 +538,11 @@ function clearLines() {
 function spawnNewPiece() {
     currentPiece = nextPiece;
     nextPiece = createPiece();
+
+    // Reset mutation counter for new piece in Random Mode
+    if (gameMode === 'random') {
+        mutationCounter = 0;
+    }
 
     drawNextPiece();
 
@@ -447,6 +562,12 @@ function gameOver() {
 
     // Stop background music
     stopBackgroundMusic();
+
+    // Remove mutation warning if exists
+    if (mutationWarningElement) {
+        mutationWarningElement.remove();
+        mutationWarningElement = null;
+    }
 
     document.getElementById('finalScore').textContent = score;
     document.getElementById('gameOver').classList.remove('hidden');
@@ -486,7 +607,7 @@ function drawPiece(piece) {
     }
 }
 
-// Calculate ghost piece position (where piece will land on hard drop)
+// Calculate ghost piece position
 function getGhostPiecePosition(piece) {
     const ghostPiece = {
         ...piece,
@@ -497,12 +618,12 @@ function getGhostPiecePosition(piece) {
     while (!checkCollisionForPiece(ghostPiece)) {
         ghostPiece.y++;
     }
-    ghostPiece.y--; // Move back up one position
+    ghostPiece.y--;
 
     return ghostPiece;
 }
 
-// Check collision for a specific piece (used for ghost piece calculation)
+// Check collision for a specific piece
 function checkCollisionForPiece(piece) {
     const shape = piece.shape;
     for (let y = 0; y < shape.length; y++) {
@@ -524,11 +645,10 @@ function checkCollisionForPiece(piece) {
     return false;
 }
 
-// Draw ghost piece (preview of where piece will land)
+// Draw ghost piece
 function drawGhostPiece(piece) {
     const ghostPiece = getGhostPiecePosition(piece);
 
-    // Only draw ghost if it's below the current piece
     if (ghostPiece.y <= piece.y) return;
 
     const shape = ghostPiece.shape;
@@ -542,7 +662,7 @@ function drawGhostPiece(piece) {
         }
     }
 
-    ctx.globalAlpha = 1.0; // Reset opacity
+    ctx.globalAlpha = 1.0;
 }
 
 function drawBlock(x, y, color, context, size) {
@@ -595,76 +715,32 @@ function updateLines() {
     document.getElementById('lines').textContent = lines;
 }
 
-// ============================================
-// BACKGROUND MUSIC FUNCTIONS
-// ============================================
-
-/**
- * Initialize background music
- * TO ADD YOUR MUSIC:
- * 1. Place your music file in the same directory as this script
- * 2. Update the file path in the line below
- * 3. Supported formats:
- *    - MP3: Works in all browsers (recommended)
- *    - OGG: Works in Firefox, Chrome, Edge
- *    - WAV: Works in all browsers (large file size)
- *    - FLAC: Works in Chrome, Edge (NOT Safari/iOS)
- */
+// Background Music Functions
 function initBackgroundMusic() {
-    // CREATE YOUR MUSIC FILE AND UPDATE THE PATH BELOW
-    // Examples:
-    //   backgroundMusic = new Audio('tetris-theme.mp3');
-    //   backgroundMusic = new Audio('tetris-theme.flac');
-    //   backgroundMusic = new Audio('music/tetris-theme.flac');
-    backgroundMusic = new Audio('music/01 Tetoris.flac'); // <-- PUT YOUR MUSIC FILE PATH HERE
+    backgroundMusic = new Audio('music/01 Tetoris.flac');
+    backgroundMusic.loop = true;
+    backgroundMusic.volume = 0.5;
 
-    backgroundMusic.loop = true; // Loop the music continuously
-    backgroundMusic.volume = 0.5; // Set volume (0.0 to 1.0)
-
-    // Optional: Add error handling
     backgroundMusic.addEventListener('error', function (e) {
         console.log('Error loading background music:', e);
-        console.log('Make sure your music file exists at the specified path');
-        console.log('Note: FLAC files only work in Chrome/Edge, not Safari/iOS');
     });
 }
 
-/**
- * Play background music
- */
 function playBackgroundMusic() {
     if (backgroundMusic && !isMusicPlaying) {
         backgroundMusic.play().then(() => {
             isMusicPlaying = true;
-            console.log('Background music started');
         }).catch(error => {
             console.log('Could not play music:', error);
-            console.log('Browser may require user interaction before playing audio');
         });
     }
 }
 
-/**
- * Stop background music
- */
 function stopBackgroundMusic() {
     if (backgroundMusic && isMusicPlaying) {
         backgroundMusic.pause();
-        backgroundMusic.currentTime = 0; // Reset to beginning
+        backgroundMusic.currentTime = 0;
         isMusicPlaying = false;
-        console.log('Background music stopped');
-    }
-}
-
-/**
- * Toggle background music on/off
- * You can call this function to allow users to mute/unmute music
- */
-function toggleBackgroundMusic() {
-    if (isMusicPlaying) {
-        stopBackgroundMusic();
-    } else {
-        playBackgroundMusic();
     }
 }
 
