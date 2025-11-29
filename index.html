@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,13 +7,11 @@
     <meta name="description" content="Play classic Tetris with a beautiful Nord theme and adjustable difficulty">
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
     <div class="container">
         <header>
             <h1>Tet_ris</h1>
         </header>
-
         <div class="game-wrapper">
             <div class="side-panel left-panel">
                 <div class="panel-section">
@@ -34,7 +31,6 @@
                     <div class="lines-display" id="lines">0</div>
                 </div>
             </div>
-
             <div class="game-area">
                 <canvas id="gameCanvas" width="300" height="600"></canvas>
                 <div id="gameOver" class="game-over hidden">
@@ -43,7 +39,6 @@
                     <button id="restartBtn" class="btn">Play Again</button>
                 </div>
             </div>
-
             <div class="side-panel right-panel">
                 <div class="panel-section">
                     <h2>Controls</h2>
@@ -86,13 +81,29 @@
                     </div>
                 </div>
                 <div class="panel-section">
+                    <h2>Game Mode</h2>
+                    <div class="mode-selector">
+                        <label class="mode-option">
+                            <input type="radio" name="gameMode" value="classic" checked>
+                            <span class="mode-label">
+                                <span class="mode-title">Classic</span>
+                                <span class="mode-desc">Traditional Tetris gameplay</span>
+                            </span>
+                        </label>
+                        <label class="mode-option">
+                            <input type="radio" name="gameMode" value="random">
+                            <span class="mode-label">
+                                <span class="mode-title">Random Mode</span>
+                                <span class="mode-desc">Pieces change shape every 2 seconds!</span>
+                            </span>
+                        </label>
+                    </div>
                     <button id="startBtn" class="btn btn-primary">Start Game</button>
                 </div>
             </div>
         </div>
     </div>
-
     <script src="script.js"></script>
 </body>
-
 </html>
+            
