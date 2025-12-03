@@ -1,0 +1,139 @@
+/* auth.css
+   Hanya mengatur styling khusus untuk halaman login.
+   Scoped ke class .login-* sehingga tidak mengubah style.css lainnya.
+*/
+
+/* Utility (visually hidden for labels) */
+.visually-hidden {
+  position: absolute !important;
+  height: 1px; width: 1px;
+  overflow: hidden;
+  clip: rect(1px,1px,1px,1px);
+  white-space: nowrap;
+}
+
+/* Container pusat untuk halaman login */
+.login-wrapper {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 40px);
+}
+
+/* Kartu login */
+.login-card {
+  width: 100%;
+  background: linear-gradient(180deg, rgba(59,66,82,0.98), rgba(46,52,64,0.98));
+  border: 1px solid rgba(67,76,94,0.25); /* subtle border */
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 16px 60px rgba(0,0,0,0.6);
+  text-align: center;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+/* Efek saat fokus ke input di dalam kartu */
+.login-card:focus-within {
+  transform: translateY(-4px);
+  box-shadow: 0 22px 80px rgba(0,0,0,0.7);
+}
+
+/* Brand / judul */
+.login-brand {
+  margin-bottom: 16px;
+}
+
+.login-brand h1 {
+  font-size: 2.2rem;
+  color: #88C0D0; /* var(--nord8) */
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+
+.login-subtitle {
+  color: #D8DEE9; /* var(--nord4) */
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+}
+
+/* Form input */
+.login-form {
+  margin-top: 6px;
+}
+
+.login-form input[type="text"] {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(76,86,106,0.35);
+  background: rgba(46,52,64,0.9);
+  color: #ECEFF4; /* var(--nord6) */
+  font-size: 1rem;
+  outline: none;
+  transition: box-shadow 0.12s ease, border-color 0.12s ease;
+  margin-bottom: 16px;
+}
+
+.login-form input[type="text"]:focus {
+  border-color: #88C0D0; /* var(--nord8) */
+  box-shadow: 0 6px 20px rgba(136,192,208,0.12);
+}
+
+/* Tombol - tetap gunakan kelas .btn dari style.css, tapi tambahkan variant */
+.login-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.login-actions .btn {
+  flex: 1;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+}
+
+/* secondary button light variant (non-destructive) */
+.btn.btn-secondary {
+  background: transparent;
+  color: #ECEFF4; /* var(--nord6) */
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: none;
+}
+
+.btn.btn-secondary:hover {
+  background: rgba(255,255,255,0.02);
+  border-color: #88C0D0;
+}
+
+/* Catatan kecil & footer */
+.login-note {
+  color: #E5E9F0; /* var(--nord5) */
+  font-size: 0.88rem;
+  margin-top: 6px;
+}
+
+.login-footer {
+  margin-top: 14px;
+  color: #B8C6D1; /* subtle */
+  font-size: 0.82rem;
+}
+
+/* Responsif kecil — tetap scoped */
+@media (max-width: 520px) {
+  .login-card {
+    padding: 20px;
+    border-radius: 10px;
+  }
+
+  .login-brand h1 {
+    font-size: 1.8rem;
+  }
+
+  .login-actions {
+    flex-direction: column;
+  }
+}
