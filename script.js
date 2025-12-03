@@ -1,99 +1,98 @@
-// Tetris Game Logic with Nord Theme Colors and Random Mode
 
-// Game Constants
+// game.js — Tetris game logic (perbaikan start button + piece creation bug)
+
+// --- Konstanta dan state ---
+const LS_USER_KEY = 'tetoris_user'; // harus sama dengan auth.js
 const COLS = 10;
 const ROWS = 20;
 const BLOCK_SIZE = 30;
 const NEXT_BLOCK_SIZE = 30;
 
-// Nord Theme Colors for Tetrominos
 const COLORS = {
-    I: '#88C0D0', // Nord8 - Frost
-    O: '#EBCB8B', // Nord13 - Aurora Yellow
-    T: '#B48EAD', // Nord15 - Aurora Purple
-    S: '#A3BE8C', // Nord14 - Aurora Green
-    Z: '#BF616A', // Nord11 - Aurora Red
-    J: '#5E81AC', // Nord10 - Frost Blue
-    L: '#D08770', // Nord12 - Aurora Orange
-    EMPTY: '#2E3440', // Nord0 - Background
-    GRID: '#3B4252', // Nord1 - Grid lines
-    GHOST_OPACITY: 0.3 // Opacity for ghost piece preview
+    I: '#88C0D0',
+    O: '#EBCB8B',
+    T: '#B48EAD',
+    S: '#A3BE8C',
+    Z: '#BF616A',
+    J: '#5E81AC',
+    L: '#D08770',
+    EMPTY: '#2E3440',
+    GRID: '#3B4252',
+    GHOST_OPACITY: 0.3
 };
 
-// Tetromino Shapes
 const SHAPES = {
     I: [
         [[1, 1, 1, 1]],
         [[0, 1, 0, 0],
-        [0, 1, 0, 0],
-        [0, 1, 0, 0],
-        [0, 1, 0, 0]]
+         [0, 1, 0, 0],
+         [0, 1, 0, 0],
+         [0, 1, 0, 0]]
     ],
     O: [
         [[1, 1],
-        [1, 1]]
+         [1, 1]]
     ],
     T: [
         [[0, 1, 0],
-        [1, 1, 1],
-        [0, 0, 0]],
+         [1, 1, 1],
+         [0, 0, 0]],
         [[0, 1, 0],
-        [0, 1, 1],
-        [0, 1, 0]],
+         [0, 1, 1],
+         [0, 1, 0]],
         [[0, 0, 0],
-        [1, 1, 1],
-        [0, 1, 0]],
+         [1, 1, 1],
+         [0, 1, 0]],
         [[0, 1, 0],
-        [1, 1, 0],
-        [0, 1, 0]]
+         [1, 1, 0],
+         [0, 1, 0]]
     ],
     S: [
         [[0, 1, 1],
-        [1, 1, 0],
-        [0, 0, 0]],
+         [1, 1, 0],
+         [0, 0, 0]],
         [[0, 1, 0],
-        [0, 1, 1],
-        [0, 0, 1]]
+         [0, 1, 1],
+         [0, 0, 1]]
     ],
     Z: [
         [[1, 1, 0],
-        [0, 1, 1],
-        [0, 0, 0]],
+         [0, 1, 1],
+         [0, 0, 0]],
         [[0, 0, 1],
-        [0, 1, 1],
-        [0, 1, 0]]
+         [0, 1, 1],
+         [0, 1, 0]]
     ],
     J: [
         [[1, 0, 0],
-        [1, 1, 1],
-        [0, 0, 0]],
+         [1, 1, 1],
+         [0, 0, 0]],
         [[0, 1, 1],
-        [0, 1, 0],
-        [0, 1, 0]],
+         [0, 1, 0],
+         [0, 1, 0]],
         [[0, 0, 0],
-        [1, 1, 1],
-        [0, 0, 1]],
+         [1, 1, 1],
+         [0, 0, 1]],
         [[0, 1, 0],
-        [0, 1, 0],
-        [1, 1, 0]]
+         [0, 1, 0],
+         [1, 1, 0]]
     ],
     L: [
         [[0, 0, 1],
-        [1, 1, 1],
-        [0, 0, 0]],
+         [1, 1, 1],
+         [0, 0, 0]],
         [[0, 1, 0],
-        [0, 1, 0],
-        [0, 1, 1]],
+         [0, 1, 0],
+         [0, 1, 1]],
         [[0, 0, 0],
-        [1, 1, 1],
-        [1, 0, 0]],
+         [1, 1, 1],
+         [1, 0, 0]],
         [[1, 1, 0],
-        [0, 1, 0],
-        [0, 1, 0]]
+         [0, 1, 0],
+         [0, 1, 0]]
     ]
 };
 
-// Game State
 let canvas, ctx, nextCanvas, nextCtx;
 let board = [];
 let currentPiece = null;
@@ -108,75 +107,76 @@ let dropCounter = 0;
 let dropInterval = 1000;
 let lastTime = 0;
 let difficulty = 5;
-let gameMode = 'classic'; // 'classic' or 'random'
+let gameMode = 'classic';
 
-// Random Mode specific variables
 let mutationCounter = 0;
-let mutationInterval = 2000; // 2 seconds
-let mutationWarningElement = null;
+let mutationInterval = 2000;
 
-// Background Music
 let backgroundMusic = null;
 let isMusicPlaying = false;
 
-// 7-Bag Randomizer (prevents repetitive pieces)
 let pieceBag = [];
 
-// Initialize game
+// Initialization
 function init() {
-    canvas = document.getElementById('gameCanvas');
-    ctx = canvas.getContext('2d');
-    nextCanvas = document.getElementById('nextCanvas');
-    nextCtx = nextCanvas.getContext('2d');
+    // Only initialize if we are on the game page
+    if (!location.pathname.endsWith('game.html')) return;
 
-    // Initialize board
+    canvas = document.getElementById('gameCanvas');
+    ctx = canvas ? canvas.getContext('2d') : null;
+    nextCanvas = document.getElementById('nextCanvas');
+    nextCtx = nextCanvas ? nextCanvas.getContext('2d') : null;
+
+    if (!canvas || !ctx || !nextCanvas || !nextCtx) {
+        console.error('Game canvas elements not found.');
+        return;
+    }
+
     board = Array(ROWS).fill(null).map(() => Array(COLS).fill(0));
 
-    // Initialize background music
-    initBackgroundMusic();
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const difficultySlider = document.getElementById('difficultySlider');
 
-    // Event listeners
-    document.getElementById('startBtn').addEventListener('click', startGame);
-    document.getElementById('restartBtn').addEventListener('click', restartGame);
-    document.getElementById('difficultySlider').addEventListener('input', updateDifficulty);
+    if (startBtn) startBtn.addEventListener('click', startGame);
+    if (restartBtn) restartBtn.addEventListener('click', restartGame);
+    if (difficultySlider) difficultySlider.addEventListener('input', updateDifficulty);
     document.addEventListener('keydown', handleKeyPress);
 
-    // Mode selector
     document.querySelectorAll('input[name="gameMode"]').forEach(radio => {
         radio.addEventListener('change', (e) => {
             gameMode = e.target.value;
         });
     });
 
-    // Initial draw
+    // Enable start button only if user is logged in (check localStorage key used by auth.js)
+    if (startBtn) {
+        const logged = !!localStorage.getItem(LS_USER_KEY);
+        startBtn.disabled = !logged;
+        if (!logged) console.info('Start button disabled: user not logged in.');
+    }
+
     drawBoard();
     drawNextPiece();
 }
 
-// Update difficulty
+// --- remaining functions (same logic, unchanged except fixed piece creation order) ---
+
 function updateDifficulty(e) {
     difficulty = parseInt(e.target.value);
-    document.getElementById('difficultyValue').textContent = difficulty;
-
-    // Update drop interval based on difficulty
-    if (gameRunning) {
-        updateDropInterval();
-    }
+    const diffEl = document.getElementById('difficultyValue');
+    if (diffEl) diffEl.textContent = difficulty;
+    if (gameRunning) updateDropInterval();
 }
 
 function updateDropInterval() {
-    // Base interval decreases with difficulty (1-10 scale)
-    // Easy (1): 1000ms, Hard (10): 100ms
     const baseInterval = 1100 - (difficulty * 100);
-    // Further decrease with level
     dropInterval = Math.max(100, baseInterval - (level - 1) * 50);
 }
 
-// Start game
 function startGame() {
     if (gameRunning) return;
 
-    // Reset game state
     board = Array(ROWS).fill(null).map(() => Array(COLS).fill(0));
     score = 0;
     level = 1;
@@ -192,47 +192,33 @@ function startGame() {
     updateLines();
     updateDropInterval();
 
-    // Hide game over screen
-    document.getElementById('gameOver').classList.add('hidden');
+    const gameOverEl = document.getElementById('gameOver');
+    if (gameOverEl) gameOverEl.classList.add('hidden');
 
-    // Remove any existing mutation warning
-    if (mutationWarningElement) {
-        mutationWarningElement.remove();
-        mutationWarningElement = null;
-    }
-
-    // Create first pieces
-    nextPiece = createPiece();
+    // Fix: create currentPiece then nextPiece
     currentPiece = createPiece();
     nextPiece = createPiece();
 
     drawNextPiece();
 
-    // Start background music
     playBackgroundMusic();
 
-    // Start game loop
     requestAnimationFrame(update);
 }
 
-// Restart game
 function restartGame() {
     startGame();
 }
 
-// Create random piece using 7-bag randomizer
 function createPiece() {
-    // If bag is empty, refill it with all 7 piece types
     if (pieceBag.length === 0) {
         pieceBag = Object.keys(SHAPES);
-        // Shuffle the bag using Fisher-Yates algorithm
         for (let i = pieceBag.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [pieceBag[i], pieceBag[j]] = [pieceBag[j], pieceBag[i]];
         }
     }
 
-    // Take the next piece from the bag
     const type = pieceBag.pop();
     const shapes = SHAPES[type];
 
@@ -246,34 +232,24 @@ function createPiece() {
     };
 }
 
-// Mutate current piece to random shape (Random Mode)
 function mutateCurrentPiece() {
     if (gameMode !== 'random' || !currentPiece) return;
 
-    // Get all piece types
     const types = Object.keys(SHAPES);
-    
-    // Get random type (can be same as current)
     const newType = types[Math.floor(Math.random() * types.length)];
     const newShapes = SHAPES[newType];
     const newRotation = Math.floor(Math.random() * newShapes.length);
 
-    // Store old position
     const oldX = currentPiece.x;
     const oldY = currentPiece.y;
 
-    // Update piece
     currentPiece.type = newType;
     currentPiece.shape = newShapes[newRotation];
     currentPiece.rotation = newRotation;
     currentPiece.color = COLORS[newType];
 
-    // Check if new shape causes collision
     if (checkCollision()) {
-        // Try to adjust position slightly
         let adjusted = false;
-        
-        // Try moving left/right
         for (let offset = -2; offset <= 2; offset++) {
             currentPiece.x = oldX + offset;
             if (!checkCollision()) {
@@ -281,8 +257,6 @@ function mutateCurrentPiece() {
                 break;
             }
         }
-
-        // If still colliding, try moving up
         if (!adjusted) {
             currentPiece.x = oldX;
             for (let offset = -2; offset <= 0; offset++) {
@@ -293,32 +267,24 @@ function mutateCurrentPiece() {
                 }
             }
         }
-
-        // If still can't adjust, revert (rare case)
         if (!adjusted) {
             currentPiece.y = oldY;
         }
     }
 
-    // Show mutation warning
     showMutationWarning();
 }
 
-// Show mutation warning popup
+let mutationWarningElement = null;
 function showMutationWarning() {
-    // Remove existing warning if any
-    if (mutationWarningElement) {
-        mutationWarningElement.remove();
-    }
+    if (mutationWarningElement) mutationWarningElement.remove();
 
-    // Create warning element
     mutationWarningElement = document.createElement('div');
     mutationWarningElement.className = 'mutation-warning';
     mutationWarningElement.textContent = '⚡ SHAPE CHANGED!';
-    
-    document.querySelector('.game-area').appendChild(mutationWarningElement);
+    const ga = document.querySelector('.game-area');
+    if (ga) ga.appendChild(mutationWarningElement);
 
-    // Remove after 1 second
     setTimeout(() => {
         if (mutationWarningElement) {
             mutationWarningElement.remove();
@@ -327,7 +293,6 @@ function showMutationWarning() {
     }, 1000);
 }
 
-// Game loop
 function update(time = 0) {
     if (!gameRunning || gamePaused) return;
 
@@ -335,10 +300,8 @@ function update(time = 0) {
     lastTime = time;
     dropCounter += deltaTime;
 
-    // Random Mode: Mutation timer
     if (gameMode === 'random') {
         mutationCounter += deltaTime;
-        
         if (mutationCounter >= mutationInterval) {
             mutateCurrentPiece();
             mutationCounter = 0;
@@ -351,82 +314,56 @@ function update(time = 0) {
     }
 
     drawBoard();
-    drawGhostPiece(currentPiece);
-    drawPiece(currentPiece);
+    if (currentPiece) {
+        drawGhostPiece(currentPiece);
+        drawPiece(currentPiece);
+    }
 
     gameLoop = requestAnimationFrame(update);
 }
 
-// Handle keyboard input
 function handleKeyPress(e) {
     if (!gameRunning || gamePaused) {
-        if (e.key === 'p' || e.key === 'P') {
-            togglePause();
-        }
+        if (e.key === 'p' || e.key === 'P') togglePause();
         return;
     }
 
     switch (e.key) {
-        case 'ArrowLeft':
-            moveLeft();
-            break;
-        case 'ArrowRight':
-            moveRight();
-            break;
-        case 'ArrowDown':
-            moveDown();
-            break;
-        case 'ArrowUp':
-            rotate();
-            break;
-        case ' ':
-            hardDrop();
-            break;
-        case 'p':
-        case 'P':
-            togglePause();
-            break;
+        case 'ArrowLeft': moveLeft(); break;
+        case 'ArrowRight': moveRight(); break;
+        case 'ArrowDown': moveDown(); break;
+        case 'ArrowUp': rotate(); break;
+        case ' ': hardDrop(); break;
+        case 'p': case 'P': togglePause(); break;
     }
-
     e.preventDefault();
 }
 
-// Toggle pause
 function togglePause() {
     if (!gameRunning) return;
-
     gamePaused = !gamePaused;
-
     if (!gamePaused) {
         lastTime = performance.now();
         requestAnimationFrame(update);
     }
 }
 
-// Movement functions
 function moveLeft() {
+    if (!currentPiece) return;
     currentPiece.x--;
-    if (checkCollision()) {
-        currentPiece.x++;
-    } else {
-        drawBoard();
-        drawGhostPiece(currentPiece);
-        drawPiece(currentPiece);
-    }
+    if (checkCollision()) currentPiece.x++;
+    else { drawBoard(); drawGhostPiece(currentPiece); drawPiece(currentPiece); }
 }
 
 function moveRight() {
+    if (!currentPiece) return;
     currentPiece.x++;
-    if (checkCollision()) {
-        currentPiece.x--;
-    } else {
-        drawBoard();
-        drawGhostPiece(currentPiece);
-        drawPiece(currentPiece);
-    }
+    if (checkCollision()) currentPiece.x--;
+    else { drawBoard(); drawGhostPiece(currentPiece); drawPiece(currentPiece); }
 }
 
 function moveDown() {
+    if (!currentPiece) return;
     currentPiece.y++;
     if (checkCollision()) {
         currentPiece.y--;
@@ -437,6 +374,7 @@ function moveDown() {
 }
 
 function rotate() {
+    if (!currentPiece) return;
     const shapes = SHAPES[currentPiece.type];
     const nextRotation = (currentPiece.rotation + 1) % shapes.length;
     const previousShape = currentPiece.shape;
@@ -455,16 +393,14 @@ function rotate() {
 }
 
 function hardDrop() {
-    while (!checkCollision()) {
-        currentPiece.y++;
-    }
+    if (!currentPiece) return;
+    while (!checkCollision()) currentPiece.y++;
     currentPiece.y--;
     lockPiece();
     clearLines();
     spawnNewPiece();
 }
 
-// Check collision
 function checkCollision() {
     const shape = currentPiece.shape;
     for (let y = 0; y < shape.length; y++) {
@@ -472,21 +408,14 @@ function checkCollision() {
             if (shape[y][x]) {
                 const newX = currentPiece.x + x;
                 const newY = currentPiece.y + y;
-
-                if (newX < 0 || newX >= COLS || newY >= ROWS) {
-                    return true;
-                }
-
-                if (newY >= 0 && board[newY][newX]) {
-                    return true;
-                }
+                if (newX < 0 || newX >= COLS || newY >= ROWS) return true;
+                if (newY >= 0 && board[newY][newX]) return true;
             }
         }
     }
     return false;
 }
 
-// Lock piece to board
 function lockPiece() {
     const shape = currentPiece.shape;
     for (let y = 0; y < shape.length; y++) {
@@ -494,37 +423,28 @@ function lockPiece() {
             if (shape[y][x]) {
                 const boardY = currentPiece.y + y;
                 const boardX = currentPiece.x + x;
-                if (boardY >= 0) {
-                    board[boardY][boardX] = currentPiece.color;
-                }
+                if (boardY >= 0) board[boardY][boardX] = currentPiece.color;
             }
         }
     }
 }
 
-// Clear completed lines
 function clearLines() {
     let linesCleared = 0;
-
     for (let y = ROWS - 1; y >= 0; y--) {
         if (board[y].every(cell => cell !== 0)) {
             board.splice(y, 1);
             board.unshift(Array(COLS).fill(0));
             linesCleared++;
-            y++; // Check same row again
+            y++;
         }
     }
 
     if (linesCleared > 0) {
         lines += linesCleared;
-
-        // Scoring: 100 for 1 line, 300 for 2, 500 for 3, 800 for 4
         const points = [0, 100, 300, 500, 800];
-        // Difficulty multiplier: higher difficulty = more points
         const difficultyMultiplier = 1 + (difficulty - 1) * 0.2;
         score += Math.floor(points[linesCleared] * level * difficultyMultiplier);
-
-        // Level up every 10 lines
         level = Math.floor(lines / 10) + 1;
 
         updateScore();
@@ -534,96 +454,81 @@ function clearLines() {
     }
 }
 
-// Spawn new piece
 function spawnNewPiece() {
     currentPiece = nextPiece;
     nextPiece = createPiece();
 
-    // Reset mutation counter for new piece in Random Mode
-    if (gameMode === 'random') {
-        mutationCounter = 0;
-    }
-
+    if (gameMode === 'random') mutationCounter = 0;
     drawNextPiece();
 
-    if (checkCollision()) {
-        gameOver();
-    }
+    if (checkCollision()) gameOver();
 }
 
-// Game over
 function gameOver() {
     gameRunning = false;
     gamePaused = false;
-
-    if (gameLoop) {
-        cancelAnimationFrame(gameLoop);
-    }
-
-    // Stop background music
+    if (gameLoop) cancelAnimationFrame(gameLoop);
     stopBackgroundMusic();
+    if (mutationWarningElement) { mutationWarningElement.remove(); mutationWarningElement = null; }
 
-    // Remove mutation warning if exists
-    if (mutationWarningElement) {
-        mutationWarningElement.remove();
-        mutationWarningElement = null;
+    const finalScoreEl = document.getElementById('finalScore');
+    if (finalScoreEl) finalScoreEl.textContent = score;
+    const gameOverEl = document.getElementById('gameOver');
+    if (gameOverEl) gameOverEl.classList.remove('hidden');
+
+    // Save to leaderboard via auth.js (or localStorage fallback)
+    try {
+        const player = (window.getCurrentPlayer && window.getCurrentPlayer()) || localStorage.getItem(LS_USER_KEY) || 'Guest';
+        if (typeof window.addScoreToLeaderboard === 'function') {
+            window.addScoreToLeaderboard(player || 'Guest', score);
+            if (typeof window.renderLeaderboard === 'function') window.renderLeaderboard();
+        } else {
+            // fallback: store directly (same format as auth.js)
+            const raw = localStorage.getItem('tetoris_leaderboard');
+            let lb = [];
+            try { lb = raw ? JSON.parse(raw) : []; } catch (e) { lb = []; }
+            lb.push({ name: player, score, date: new Date().toISOString() });
+            lb.sort((a,b) => b.score - a.score || new Date(b.date) - new Date(a.date));
+            localStorage.setItem('tetoris_leaderboard', JSON.stringify(lb.slice(0,10)));
+        }
+    } catch (err) {
+        console.warn('Leaderboard save error', err);
     }
-
-    document.getElementById('finalScore').textContent = score;
-    document.getElementById('gameOver').classList.remove('hidden');
 }
 
-// Drawing functions
 function drawBoard() {
-    // Clear canvas
+    if (!ctx) return;
     ctx.fillStyle = COLORS.EMPTY;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw grid
     ctx.strokeStyle = COLORS.GRID;
     ctx.lineWidth = 1;
 
     for (let y = 0; y < ROWS; y++) {
         for (let x = 0; x < COLS; x++) {
-            // Draw grid lines
             ctx.strokeRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-
-            // Draw locked pieces
-            if (board[y][x]) {
-                drawBlock(x, y, board[y][x], ctx, BLOCK_SIZE);
-            }
+            if (board[y][x]) drawBlock(x, y, board[y][x], ctx, BLOCK_SIZE);
         }
     }
 }
 
 function drawPiece(piece) {
+    if (!piece) return;
     const shape = piece.shape;
     for (let y = 0; y < shape.length; y++) {
         for (let x = 0; x < shape[y].length; x++) {
-            if (shape[y][x]) {
-                drawBlock(piece.x + x, piece.y + y, piece.color, ctx, BLOCK_SIZE);
-            }
+            if (shape[y][x]) drawBlock(piece.x + x, piece.y + y, piece.color, ctx, BLOCK_SIZE);
         }
     }
 }
 
-// Calculate ghost piece position
 function getGhostPiecePosition(piece) {
-    const ghostPiece = {
-        ...piece,
-        y: piece.y
-    };
-
-    // Move down until collision
-    while (!checkCollisionForPiece(ghostPiece)) {
-        ghostPiece.y++;
-    }
+    const ghostPiece = { ...piece, y: piece.y };
+    while (!checkCollisionForPiece(ghostPiece)) ghostPiece.y++;
     ghostPiece.y--;
-
     return ghostPiece;
 }
 
-// Check collision for a specific piece
 function checkCollisionForPiece(piece) {
     const shape = piece.shape;
     for (let y = 0; y < shape.length; y++) {
@@ -631,108 +536,83 @@ function checkCollisionForPiece(piece) {
             if (shape[y][x]) {
                 const newX = piece.x + x;
                 const newY = piece.y + y;
-
-                if (newX < 0 || newX >= COLS || newY >= ROWS) {
-                    return true;
-                }
-
-                if (newY >= 0 && board[newY][newX]) {
-                    return true;
-                }
+                if (newX < 0 || newX >= COLS || newY >= ROWS) return true;
+                if (newY >= 0 && board[newY][newX]) return true;
             }
         }
     }
     return false;
 }
 
-// Draw ghost piece
 function drawGhostPiece(piece) {
+    if (!piece) return;
     const ghostPiece = getGhostPiecePosition(piece);
-
     if (ghostPiece.y <= piece.y) return;
 
     const shape = ghostPiece.shape;
     ctx.globalAlpha = COLORS.GHOST_OPACITY;
-
     for (let y = 0; y < shape.length; y++) {
         for (let x = 0; x < shape[y].length; x++) {
-            if (shape[y][x]) {
-                drawBlock(ghostPiece.x + x, ghostPiece.y + y, piece.color, ctx, BLOCK_SIZE);
-            }
+            if (shape[y][x]) drawBlock(ghostPiece.x + x, ghostPiece.y + y, piece.color, ctx, BLOCK_SIZE);
         }
     }
-
     ctx.globalAlpha = 1.0;
 }
 
 function drawBlock(x, y, color, context, size) {
-    // Main block
     context.fillStyle = color;
     context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
 
-    // Highlight effect
-    const gradient = context.createLinearGradient(
-        x * size, y * size,
-        x * size + size, y * size + size
-    );
-    gradient.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
-    gradient.addColorStop(1, 'rgba(0, 0, 0, 0.3)');
-
+    const gradient = context.createLinearGradient(x * size, y * size, x * size + size, y * size + size);
+    gradient.addColorStop(0, 'rgba(255,255,255,0.3)');
+    gradient.addColorStop(1, 'rgba(0,0,0,0.3)');
     context.fillStyle = gradient;
     context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
 }
 
 function drawNextPiece() {
-    // Clear canvas
+    if (!nextCtx) return;
     nextCtx.fillStyle = COLORS.EMPTY;
     nextCtx.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
-
     if (!nextPiece) return;
-
     const shape = nextPiece.shape;
     const offsetX = (4 - shape[0].length) / 2;
     const offsetY = (4 - shape.length) / 2;
-
     for (let y = 0; y < shape.length; y++) {
         for (let x = 0; x < shape[y].length; x++) {
-            if (shape[y][x]) {
-                drawBlock(offsetX + x, offsetY + y, nextPiece.color, nextCtx, NEXT_BLOCK_SIZE);
-            }
+            if (shape[y][x]) drawBlock(offsetX + x, offsetY + y, nextPiece.color, nextCtx, NEXT_BLOCK_SIZE);
         }
     }
 }
 
-// Update UI
 function updateScore() {
-    document.getElementById('score').textContent = score;
+    const el = document.getElementById('score');
+    if (el) el.textContent = score;
 }
 
 function updateLevel() {
-    document.getElementById('level').textContent = level;
+    const el = document.getElementById('level');
+    if (el) el.textContent = level;
 }
 
 function updateLines() {
-    document.getElementById('lines').textContent = lines;
+    const el = document.getElementById('lines');
+    if (el) el.textContent = lines;
 }
 
-// Background Music Functions
 function initBackgroundMusic() {
     backgroundMusic = new Audio('music/01 Tetoris.flac');
     backgroundMusic.loop = true;
     backgroundMusic.volume = 0.5;
-
     backgroundMusic.addEventListener('error', function (e) {
         console.log('Error loading background music:', e);
     });
 }
 
 function playBackgroundMusic() {
+    if (!backgroundMusic) initBackgroundMusic();
     if (backgroundMusic && !isMusicPlaying) {
-        backgroundMusic.play().then(() => {
-            isMusicPlaying = true;
-        }).catch(error => {
-            console.log('Could not play music:', error);
-        });
+        backgroundMusic.play().then(() => { isMusicPlaying = true; }).catch(error => { console.log('Could not play music:', error); });
     }
 }
 
@@ -744,5 +624,5 @@ function stopBackgroundMusic() {
     }
 }
 
-// Initialize game when page loads
+// Start initialization
 window.addEventListener('load', init);
