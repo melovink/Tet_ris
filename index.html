@@ -1,109 +1,79 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tet_ris</title>
-    <meta name="description" content="Play classic Tetris with a beautiful Nord theme and adjustable difficulty">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tet_ris — Login</title>
+  <meta name="description" content="Login ke Tet_ris" />
+  <!-- Jangan hapus style.css utama -->
+  <link rel="stylesheet" href="style.css">
+  <!-- Hanya override / tambahan untuk halaman login -->
+  <link rel="stylesheet" href="auth.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Tet_ris</h1>
-        </header>
-        <div class="game-wrapper">
-            <div class="side-panel left-panel">
-                <div class="panel-section">
-                    <h2>Next</h2>
-                    <canvas id="nextCanvas" width="120" height="120"></canvas>
-                </div>
-                <div class="panel-section">
-                    <h2>Score</h2>
-                    <div class="score-display" id="score">0</div>
-                </div>
-                <div class="panel-section">
-                    <h2>Level</h2>
-                    <div class="level-display" id="level">1</div>
-                </div>
-                <div class="panel-section">
-                    <h2>Lines</h2>
-                    <div class="lines-display" id="lines">0</div>
-                </div>
-            </div>
-            <div class="game-area">
-                <canvas id="gameCanvas" width="300" height="600"></canvas>
-                <div id="gameOver" class="game-over hidden">
-                    <h2>Game Over</h2>
-                    <p>Final Score: <span id="finalScore">0</span></p>
-                    <button id="restartBtn" class="btn">Play Again</button>
-                </div>
-            </div>
-            <div class="side-panel right-panel">
-                <div class="panel-section">
-                    <h2>Controls</h2>
-                    <div class="controls-info">
-                        <div class="control-item">
-                            <span class="key">←</span>
-                            <span>Move Left</span>
-                        </div>
-                        <div class="control-item">
-                            <span class="key">→</span>
-                            <span>Move Right</span>
-                        </div>
-                        <div class="control-item">
-                            <span class="key">↓</span>
-                            <span>Soft Drop</span>
-                        </div>
-                        <div class="control-item">
-                            <span class="key">↑</span>
-                            <span>Rotate</span>
-                        </div>
-                        <div class="control-item">
-                            <span class="key">Space</span>
-                            <span>Hard Drop</span>
-                        </div>
-                        <div class="control-item">
-                            <span class="key">P</span>
-                            <span>Pause</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="panel-section">
-                    <h2>Difficulty</h2>
-                    <div class="difficulty-control">
-                        <input type="range" id="difficultySlider" min="1" max="10" value="5" step="1">
-                        <div class="difficulty-labels">
-                            <span>Easy</span>
-                            <span id="difficultyValue">5</span>
-                            <span>Hard</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="panel-section">
-                    <h2>Game Mode</h2>
-                    <div class="mode-selector">
-                        <label class="mode-option">
-                            <input type="radio" name="gameMode" value="classic" checked>
-                            <span class="mode-label">
-                                <span class="mode-title">Classic</span>
-                                <span class="mode-desc">Traditional Tetris gameplay</span>
-                            </span>
-                        </label>
-                        <label class="mode-option">
-                            <input type="radio" name="gameMode" value="random">
-                            <span class="mode-label">
-                                <span class="mode-title">Random Mode</span>
-                                <span class="mode-desc">Pieces change shape every 2 seconds!</span>
-                            </span>
-                        </label>
-                    </div>
-                    <button id="startBtn" class="btn btn-primary">Start Game</button>
-                </div>
-            </div>
+  <main class="login-wrapper">
+    <section class="login-card" role="dialog" aria-labelledby="loginTitle" aria-describedby="loginDesc">
+      <div class="login-brand">
+        <h1 id="loginTitle">Tet_ris</h1>
+        <p id="loginDesc" class="login-subtitle">Classic Tetris — Nord theme</p>
+      </div>
+
+      <form id="loginForm" class="login-form" onsubmit="return false;">
+        <label for="usernameInput" class="visually-hidden">Nama pemain</label>
+        <input id="usernameInput" name="username" type="text" placeholder="Nama kamu..." maxlength="20" autocomplete="username" />
+
+        <div class="login-actions">
+          <button id="loginBtn" class="btn btn-primary" type="button">Masuk</button>
+          <button id="guestBtn" class="btn btn-secondary" type="button">Main sebagai Guest</button>
         </div>
-    </div>
-    <script src="script.js"></script>
+
+        <p class="login-note">Nama akan disimpan secara lokal (localStorage) untuk menyimpan skor di leaderboard.</p>
+      </form>
+
+      <footer class="login-footer">
+        <small>Tekan Enter untuk cepat masuk</small>
+      </footer>
+    </section>
+  </main>
+
+  <script src="auth.js"></script>
+  <script>
+    // Inisialisasi kecil supaya tombolnya bekerja (menggunakan API auth.js)
+    window.addEventListener('load', function () {
+      const input = document.getElementById('usernameInput');
+      const loginBtn = document.getElementById('loginBtn');
+      const guestBtn = document.getElementById('guestBtn');
+
+      loginBtn.addEventListener('click', () => {
+        const name = input.value.trim();
+        if (!name) {
+          alert('Masukkan nama terlebih dahulu.');
+          input.focus();
+          return;
+        }
+        if (typeof window.setPlayerAndRedirect === 'function') {
+          window.setPlayerAndRedirect(name);
+        } else {
+          localStorage.setItem('tetoris_user', name);
+          window.location.href = 'game.html';
+        }
+      });
+
+      guestBtn.addEventListener('click', () => {
+        if (typeof window.setPlayerAndRedirect === 'function') {
+          window.setPlayerAndRedirect('Guest');
+        } else {
+          localStorage.setItem('tetoris_user', 'Guest');
+          window.location.href = 'game.html';
+        }
+      });
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') loginBtn.click();
+      });
+
+      input.focus();
+    });
+  </script>
 </body>
 </html>
-            
