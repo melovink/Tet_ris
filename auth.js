@@ -1,45 +1,45 @@
-// auth.js — login redirect + leaderboard (localStorage)
+// auth.js — redirect login + leaderboard (localStorage)
 // Versi ini menambahkan seeding: jika leaderboard kosong, akan terisi sample skor (termasuk skor tertinggi).
 
 (function () {
   const LS_USER_KEY = "tetoris_user";
   const LS_LEADERBOARD_KEY = "tetoris_leaderboard";
 
-  // Save player and redirect to game page
-  function setPlayerAndRedirect(name) {
-    if (!name) name = "Guest";
-    localStorage.setItem(LS_USER_KEY, name);
+  // Simpan pemain dan redirect ke halaman game
+  function aturPemainDanRedirect(nama) {
+    if (!nama) nama = "Guest";
+    localStorage.setItem(LS_USER_KEY, nama);
     window.location.href = "game.html";
   }
 
-  // Get current player (or null)
-  function getCurrentPlayer() {
+  // Dapatkan pemain saat ini (atau null)
+  function dapatkanPemainSekarang() {
     return localStorage.getItem(LS_USER_KEY);
   }
 
-  // Logout and redirect to login
-  function logoutAndRedirect() {
+  // Logout dan redirect ke login
+  function logoutDanRedirect() {
     localStorage.removeItem(LS_USER_KEY);
     window.location.href = "index.html";
   }
 
-  // Leaderboard helpers
-  function addScoreToLeaderboard(name, score) {
-    if (!name) name = "Guest";
-    const now = new Date().toISOString();
-    const entry = { name, score: Number(score || 0), date: now };
+  // Helper leaderboard
+  function tambahSkorKeLeaderboard(nama, skor) {
+    if (!nama) nama = "Guest";
+    const sekarang = new Date().toISOString();
+    const entri = { name: nama, score: Number(skor || 0), date: sekarang };
 
-    const lb = getLeaderboard();
-    lb.push(entry);
+    const lb = dapatkanLeaderboard();
+    lb.push(entri);
 
-    // Sort descending by score, keep top 10
+    // Urutkan descending berdasarkan skor, simpan top 10
     lb.sort((a, b) => b.score - a.score || new Date(b.date) - new Date(a.date));
-    const trimmed = lb.slice(0, 10);
+    const dipangkas = lb.slice(0, 10);
 
-    localStorage.setItem(LS_LEADERBOARD_KEY, JSON.stringify(trimmed));
+    localStorage.setItem(LS_LEADERBOARD_KEY, JSON.stringify(dipangkas));
   }
 
-  function getLeaderboard() {
+  function dapatkanLeaderboard() {
     const raw = localStorage.getItem(LS_LEADERBOARD_KEY);
     try {
       return raw ? JSON.parse(raw) : [];
@@ -48,36 +48,36 @@
     }
   }
 
-  function clearLeaderboard() {
+  function hapusLeaderboard() {
     localStorage.removeItem(LS_LEADERBOARD_KEY);
   }
 
   function renderLeaderboard() {
-    const container = document.getElementById("leaderboard");
-    if (!container) return;
-    const lb = getLeaderboard();
+    const kontainer = document.getElementById("leaderboard");
+    if (!kontainer) return;
+    const lb = dapatkanLeaderboard();
 
-    container.innerHTML = "";
+    kontainer.innerHTML = "";
     if (!lb.length) {
-      container.innerHTML =
-        '<p class="leaderboard-empty">No scores yet. Mainkan untuk mengisi leaderboard!</p>';
+      kontainer.innerHTML =
+        '<p class="leaderboard-empty">Belum ada skor. Mainkan untuk mengisi leaderboard!</p>';
       return;
     }
 
-    const list = document.createElement("ol");
-    list.className = "leaderboard-list";
+    const daftar = document.createElement("ol");
+    daftar.className = "leaderboard-list";
     lb.forEach((item) => {
       const li = document.createElement("li");
       li.innerHTML = `<span class="lb-name">${escapeHtml(
         item.name
       )}</span><span class="lb-score">${item.score}</span>`;
-      list.appendChild(li);
+      daftar.appendChild(li);
     });
-    container.appendChild(list);
+    kontainer.appendChild(daftar);
   }
 
-  function escapeHtml(unsafe) {
-    return String(unsafe).replace(/[&<"'>]/g, function (m) {
+  function escapeHtml(tidakAman) {
+    return String(tidakAman).replace(/[&<"'>]/g, function (m) {
       return {
         "&": "&amp;",
         "<": "&lt;",
@@ -88,75 +88,86 @@
     });
   }
 
-  // Seed sample leaderboard entries (only if leaderboard empty).
-  // You can edit sampleEntries to change names/scores.
-  function seedLeaderboardIfEmpty() {
-    const existing = getLeaderboard();
-    if (existing && existing.length > 0) return; // already has data
+  // Seed sample leaderboard entries (hanya jika leaderboard kosong).
+  // Anda dapat mengedit sampleEntries untuk mengubah nama/skor.
+  function seedLeaderboardJikaKosong() {
+    const existing = dapatkanLeaderboard();
+    if (existing && existing.length > 0) return; // sudah ada data
 
-    const now = new Date();
-    const sampleEntries = [
+    const sekarang = new Date();
+    const entriSample = [
       {
         name: "Champion",
         score: 999999,
-        date: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 1).toISOString(),
-      }, // tertinggi
+        date: new Date(
+          sekarang.getTime() - 1000 * 60 * 60 * 24 * 1
+        ).toISOString(),
+      },
     ];
 
-    // Ensure sorted and top 10 only
-    sampleEntries.sort(
+    // Pastikan terurut dan hanya top 10
+    entriSample.sort(
       (a, b) => b.score - a.score || new Date(b.date) - new Date(a.date)
     );
     localStorage.setItem(
       LS_LEADERBOARD_KEY,
-      JSON.stringify(sampleEntries.slice(0, 10))
+      JSON.stringify(entriSample.slice(0, 10))
     );
   }
 
-  // Expose functions to global scope used by pages / game.js
-  window.setPlayerAndRedirect = setPlayerAndRedirect;
-  window.getCurrentPlayer = getCurrentPlayer;
-  window.logoutAndRedirect = logoutAndRedirect;
-  window.addScoreToLeaderboard = addScoreToLeaderboard;
+  // Ekspos fungsi ke global scope yang digunakan oleh halaman / game.js
+  // Nama asli (untuk kompatibilitas)
+  window.setPlayerAndRedirect = aturPemainDanRedirect;
+  window.getCurrentPlayer = dapatkanPemainSekarang;
+  window.logoutAndRedirect = logoutDanRedirect;
+  window.addScoreToLeaderboard = tambahSkorKeLeaderboard;
   window.renderLeaderboard = renderLeaderboard;
-  window.clearLeaderboard = clearLeaderboard;
+  window.clearLeaderboard = hapusLeaderboard;
 
-  // Initialize on load
+  // Alias bahasa Indonesia
+  window.aturPemainDanRedirect = aturPemainDanRedirect;
+  window.dapatkanPemainSekarang = dapatkanPemainSekarang;
+  window.logoutDanRedirect = logoutDanRedirect;
+  window.tambahSkorKeLeaderboard = tambahSkorKeLeaderboard;
+  window.renderLeaderboard = renderLeaderboard;
+  window.hapusLeaderboard = hapusLeaderboard;
+
+  // Inisialisasi saat load
   window.addEventListener("load", () => {
-    // Seed leaderboard if empty
-    seedLeaderboardIfEmpty();
+    // Seed leaderboard jika kosong
+    seedLeaderboardJikaKosong();
 
-    // If on game page, ensure user is logged in, otherwise redirect to login
+    // Jika di halaman game, pastikan user sudah login, jika tidak redirect ke login
     if (location.pathname.endsWith("game.html")) {
-      const player = getCurrentPlayer();
-      if (!player) {
+      const pemain = dapatkanPemainSekarang();
+      if (!pemain) {
         window.location.href = "index.html";
         return;
       }
-      // show player name, set logout button
-      const playerNameEl = document.getElementById("playerName");
-      if (playerNameEl) playerNameEl.textContent = player;
+      // tampilkan nama pemain, atur tombol logout
+      const elNamaPemain = document.getElementById("playerName");
+      if (elNamaPemain) elNamaPemain.textContent = pemain;
 
-      const logoutBtn = document.getElementById("logoutBtn");
-      if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
-          logoutAndRedirect();
+      const tombolLogout = document.getElementById("logoutBtn");
+      if (tombolLogout) {
+        tombolLogout.addEventListener("click", () => {
+          logoutDanRedirect();
         });
       }
 
-      // enable start button (in case game.js disabled it)
-      const startBtn = document.getElementById("startBtn");
-      if (startBtn) startBtn.disabled = false;
+      // aktifkan tombol start (jika game.js menonaktifkannya)
+      const tombolMulai = document.getElementById("startBtn");
+      if (tombolMulai) tombolMulai.disabled = false;
 
       // render leaderboard
       renderLeaderboard();
 
-      // clear leaderboard button
-      const clearBtn = document.getElementById("clearLeaderboardBtn");
-      if (clearBtn) {
-        clearBtn.addEventListener("click", () => {
+      // tombol hapus leaderboard
+      const tombolHapus = document.getElementById("clearLeaderboardBtn");
+      if (tombolHapus) {
+        tombolHapus.addEventListener("click", () => {
           if (confirm("Hapus semua leaderboard?")) {
-            clearLeaderboard();
+            hapusLeaderboard();
             renderLeaderboard();
           }
         });

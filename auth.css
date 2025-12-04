@@ -3,16 +3,44 @@
    Scoped ke class .login-* sehingga tidak mengubah style.css lainnya.
 */
 
-/* Utility (visually hidden for labels) */
+/* Palet Warna Tema Nord */
+:root {
+  /* Malam Kutub */
+  --nord0: #2E3440;
+  --nord1: #3B4252;
+  --nord2: #434C5E;
+  --nord3: #4C566A;
+
+  /* Badai Salju */
+  --nord4: #D8DEE9;
+  --nord5: #E5E9F0;
+  --nord6: #ECEFF4;
+
+  /* Embun Beku */
+  --nord7: #8FBCBB;
+  --nord8: #88C0D0;
+  --nord9: #81A1C1;
+  --nord10: #5E81AC;
+
+  /* Aurora */
+  --nord11: #BF616A;
+  --nord12: #D08770;
+  --nord13: #EBCB8B;
+  --nord14: #A3BE8C;
+  --nord15: #B48EAD;
+}
+
+/* Utilitas (tersembunyi secara visual untuk label) */
 .visually-hidden {
   position: absolute !important;
-  height: 1px; width: 1px;
+  height: 1px;
+  width: 1px;
   overflow: hidden;
-  clip: rect(1px,1px,1px,1px);
+  clip: rect(1px, 1px, 1px, 1px);
   white-space: nowrap;
 }
 
-/* Container pusat untuk halaman login */
+/* Kontainer pusat untuk halaman login */
 .login-wrapper {
   width: 100%;
   max-width: 480px;
@@ -27,11 +55,12 @@
 /* Kartu login */
 .login-card {
   width: 100%;
-  background: linear-gradient(180deg, rgba(59,66,82,0.98), rgba(46,52,64,0.98));
-  border: 1px solid rgba(67,76,94,0.25); /* subtle border */
+  background: linear-gradient(180deg, rgba(59, 66, 82, 0.98), rgba(46, 52, 64, 0.98));
+  border: 1px solid rgba(67, 76, 94, 0.25);
+  /* border halus */
   border-radius: 12px;
   padding: 28px;
-  box-shadow: 0 16px 60px rgba(0,0,0,0.6);
+  box-shadow: 0 16px 60px rgba(0, 0, 0, 0.6);
   text-align: center;
   transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
@@ -39,7 +68,7 @@
 /* Efek saat fokus ke input di dalam kartu */
 .login-card:focus-within {
   transform: translateY(-4px);
-  box-shadow: 0 22px 80px rgba(0,0,0,0.7);
+  box-shadow: 0 22px 80px rgba(0, 0, 0, 0.7);
 }
 
 /* Brand / judul */
@@ -49,13 +78,15 @@
 
 .login-brand h1 {
   font-size: 2.2rem;
-  color: #88C0D0; /* var(--nord8) */
+  color: var(--nord12);
+  /* var(--nord8) */
   letter-spacing: 2px;
   margin-bottom: 6px;
 }
 
 .login-subtitle {
-  color: #D8DEE9; /* var(--nord4) */
+  color: #D8DEE9;
+  /* var(--nord4) */
   font-size: 0.95rem;
   letter-spacing: 1px;
 }
@@ -69,9 +100,10 @@
   width: 100%;
   padding: 12px 14px;
   border-radius: 10px;
-  border: 1px solid rgba(76,86,106,0.35);
-  background: rgba(46,52,64,0.9);
-  color: #ECEFF4; /* var(--nord6) */
+  border: 1px solid rgba(76, 86, 106, 0.35);
+  background: rgba(46, 52, 64, 0.9);
+  color: #ECEFF4;
+  /* var(--nord6) */
   font-size: 1rem;
   outline: none;
   transition: box-shadow 0.12s ease, border-color 0.12s ease;
@@ -79,11 +111,12 @@
 }
 
 .login-form input[type="text"]:focus {
-  border-color: #88C0D0; /* var(--nord8) */
-  box-shadow: 0 6px 20px rgba(136,192,208,0.12);
+  border-color: #88C0D0;
+  /* var(--nord8) */
+  box-shadow: 0 6px 20px rgba(136, 192, 208, 0.12);
 }
 
-/* Tombol - tetap gunakan kelas .btn dari style.css, tapi tambahkan variant */
+/* Tombol - tetap gunakan kelas .btn dari style.css, tapi tambahkan varian */
 .login-actions {
   display: flex;
   gap: 12px;
@@ -96,29 +129,32 @@
   font-size: 0.95rem;
 }
 
-/* secondary button light variant (non-destructive) */
+/* varian tombol sekunder yang ringan (non-destruktif) */
 .btn.btn-secondary {
   background: transparent;
-  color: #ECEFF4; /* var(--nord6) */
-  border: 1px solid rgba(255,255,255,0.06);
+  color: #ECEFF4;
+  /* var(--nord6) */
+  border: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow: none;
 }
 
 .btn.btn-secondary:hover {
-  background: rgba(255,255,255,0.02);
+  background: rgba(255, 255, 255, 0.02);
   border-color: #88C0D0;
 }
 
 /* Catatan kecil & footer */
 .login-note {
-  color: #E5E9F0; /* var(--nord5) */
+  color: #E5E9F0;
+  /* var(--nord5) */
   font-size: 0.88rem;
   margin-top: 6px;
 }
 
 .login-footer {
   margin-top: 14px;
-  color: #B8C6D1; /* subtle */
+  color: #B8C6D1;
+  /* halus */
   font-size: 0.82rem;
 }
 
