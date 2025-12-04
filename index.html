@@ -1,79 +1,96 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tet_ris — Login</title>
-  <meta name="description" content="Login ke Tet_ris" />
-  <!-- Jangan hapus style.css utama -->
-  <link rel="stylesheet" href="style.css">
-  <!-- Hanya override / tambahan untuk halaman login -->
-  <link rel="stylesheet" href="auth.css">
-</head>
-<body>
-  <main class="login-wrapper">
-    <section class="login-card" role="dialog" aria-labelledby="loginTitle" aria-describedby="loginDesc">
-      <div class="login-brand">
-        <h1 id="loginTitle">Tet_ris</h1>
-        <p id="loginDesc" class="login-subtitle">Classic Tetris — Nord theme</p>
-      </div>
-
-      <form id="loginForm" class="login-form" onsubmit="return false;">
-        <label for="usernameInput" class="visually-hidden">Nama pemain</label>
-        <input id="usernameInput" name="username" type="text" placeholder="Nama kamu..." maxlength="20" autocomplete="username" />
-
-        <div class="login-actions">
-          <button id="loginBtn" class="btn btn-primary" type="button">Masuk</button>
-          <button id="guestBtn" class="btn btn-secondary" type="button">Main sebagai Guest</button>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Tet_ris — Login</title>
+    <meta name="description" content="Login ke Tet_ris" />
+    <!-- Jangan hapus style.css utama -->
+    <link rel="stylesheet" href="style.css" />
+    <!-- Hanya override / tambahan untuk halaman login -->
+    <link rel="stylesheet" href="auth.css" />
+  </head>
+  <body>
+    <main class="login-wrapper">
+      <section
+        class="login-card"
+        role="dialog"
+        aria-labelledby="loginTitle"
+        aria-describedby="loginDesc"
+      >
+        <div class="login-brand">
+          <h1 id="loginTitle">Tet_ris</h1>
         </div>
 
-        <p class="login-note">Nama akan disimpan secara lokal (localStorage) untuk menyimpan skor di leaderboard.</p>
-      </form>
+        <form id="loginForm" class="login-form" onsubmit="return false;">
+          <label for="usernameInput" class="visually-hidden">Nama pemain</label>
+          <input
+            id="usernameInput"
+            name="username"
+            type="text"
+            placeholder="Nama kamu..."
+            maxlength="20"
+            autocomplete="username"
+          />
 
-      <footer class="login-footer">
-        <small>Tekan Enter untuk cepat masuk</small>
-      </footer>
-    </section>
-  </main>
+          <div class="login-actions">
+            <button id="loginBtn" class="btn btn-primary" type="button">
+              Masuk
+            </button>
+            <button id="guestBtn" class="btn btn-secondary" type="button">
+              Main sebagai Guest
+            </button>
+          </div>
 
-  <script src="auth.js"></script>
-  <script>
-    // Inisialisasi kecil supaya tombolnya bekerja (menggunakan API auth.js)
-    window.addEventListener('load', function () {
-      const input = document.getElementById('usernameInput');
-      const loginBtn = document.getElementById('loginBtn');
-      const guestBtn = document.getElementById('guestBtn');
+          <p class="login-note">
+            Nama akan disimpan secara lokal untuk menyimpan skor di leaderboard.
+          </p>
+        </form>
 
-      loginBtn.addEventListener('click', () => {
-        const name = input.value.trim();
-        if (!name) {
-          alert('Masukkan nama terlebih dahulu.');
-          input.focus();
-          return;
-        }
-        if (typeof window.setPlayerAndRedirect === 'function') {
-          window.setPlayerAndRedirect(name);
-        } else {
-          localStorage.setItem('tetoris_user', name);
-          window.location.href = 'game.html';
-        }
+        <footer class="login-footer">
+          <small>Tekan Enter untuk cepat masuk</small>
+        </footer>
+      </section>
+    </main>
+
+    <script src="auth.js"></script>
+    <script>
+      // Inisialisasi kecil supaya tombolnya bekerja (menggunakan API auth.js)
+      window.addEventListener("load", function () {
+        const input = document.getElementById("usernameInput");
+        const loginBtn = document.getElementById("loginBtn");
+        const guestBtn = document.getElementById("guestBtn");
+
+        loginBtn.addEventListener("click", () => {
+          const name = input.value.trim();
+          if (!name) {
+            alert("Masukkan nama terlebih dahulu.");
+            input.focus();
+            return;
+          }
+          if (typeof window.setPlayerAndRedirect === "function") {
+            window.setPlayerAndRedirect(name);
+          } else {
+            localStorage.setItem("tetoris_user", name);
+            window.location.href = "game.html";
+          }
+        });
+
+        guestBtn.addEventListener("click", () => {
+          if (typeof window.setPlayerAndRedirect === "function") {
+            window.setPlayerAndRedirect("Guest");
+          } else {
+            localStorage.setItem("tetoris_user", "Guest");
+            window.location.href = "game.html";
+          }
+        });
+
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") loginBtn.click();
+        });
+
+        input.focus();
       });
-
-      guestBtn.addEventListener('click', () => {
-        if (typeof window.setPlayerAndRedirect === 'function') {
-          window.setPlayerAndRedirect('Guest');
-        } else {
-          localStorage.setItem('tetoris_user', 'Guest');
-          window.location.href = 'game.html';
-        }
-      });
-
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') loginBtn.click();
-      });
-
-      input.focus();
-    });
-  </script>
-</body>
+    </script>
+  </body>
 </html>
